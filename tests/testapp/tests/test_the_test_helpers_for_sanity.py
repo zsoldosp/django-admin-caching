@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from testapp.test_helpers import parse_table
 
 
-def test_sanity_check_there_is_an_admin_for_group(admin_client, db):
+def test_the_admin_is_configured_working(admin_client, db):
     Group.objects.create(name='foo')
     assert resolve('/admin/') is not None
     assert resolve('/admin/auth/') is not None
