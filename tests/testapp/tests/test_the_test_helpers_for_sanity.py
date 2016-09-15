@@ -1,6 +1,8 @@
 from django.core.urlresolvers import resolve
+from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group
 import pytest
+from testapp.six import patch
 from testapp.test_helpers import get_group_changelist_table
 
 
@@ -23,3 +25,15 @@ def test_caches_fixture_provides_an_empty_cache(django_caches, i):
         cache.set(key=key, value=i)
         assert key in cache
         assert cache.get(key) == i
+
+
+def test_can_mock_custom_method_on_mygroupadmin(admin_client, db):
+    Group.objects.create(name='foo')
+    admin = site._registry[Group]
+    with patch.object(admin, 'capitalized_name') as capitalized_name_mock:
+        capitalized_name_mock.boolean = False
+        capitalized_name_mock.return_value = 'bar'
+        headers, rows = get_group_changelist_table(admin_client)
+        assert rows == [['', 'foo', 'bar']]
+    assert capitalized_name_mock.called
+    assert 1 == capitalized_name_mock.call_count
