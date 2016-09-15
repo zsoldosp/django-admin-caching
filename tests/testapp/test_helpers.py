@@ -26,3 +26,9 @@ def parse_table(response):
         for row in table.cssselect('tbody tr')
     )
     return headers, rows
+
+
+def get_group_changelist_table(admin_client):
+    response = admin_client.get('/admin/auth/group/')
+    assert response.status_code == 200
+    return parse_table(response)
