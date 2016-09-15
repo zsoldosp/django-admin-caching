@@ -3,15 +3,14 @@ from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group
 import pytest
 from testapp.six import patch
-from testapp.test_helpers import get_group_changelist_table
 
 
-def test_the_admin_is_configured_working(admin_client, db):
+def test_the_admin_is_configured_working(myadmin_cl_table):
     Group.objects.create(name='foo')
     assert resolve('/admin/') is not None
     assert resolve('/admin/auth/') is not None
     assert resolve('/admin/auth/group/') is not None
-    headers, rows = get_group_changelist_table(admin_client)
+    headers, rows = myadmin_cl_table()
     assert ['', 'Name', 'Capitalized name'] == headers
     assert len(rows) == 1
     assert ['', 'foo', 'Foo'] == rows[0]
@@ -27,26 +26,26 @@ def test_caches_fixture_provides_an_empty_cache(django_caches, i):
         assert cache.get(key) == i
 
 
-def test_can_mock_custom_method_on_mygroupadmin(admin_client, db):
+def test_can_mock_custom_method_on_mygroupadmin(myadmin_cl_table):
     Group.objects.create(name='foo')
     admin = site._registry[Group]
     with patch.object(admin, 'capitalized_name') as capitalized_name_mock:
         capitalized_name_mock.boolean = False
         capitalized_name_mock.return_value = 'bar'
-        headers, rows = get_group_changelist_table(admin_client)
+        headers, rows = myadmin_cl_table()
         assert rows == [['', 'foo', 'bar']]
     assert capitalized_name_mock.called
     assert 1 == capitalized_name_mock.call_count
 
 
 def test_can_use_mocked_mygroupadmin_capitalized_name_fixture(
-        admin_client, db, capitalized_name_mock):
+        myadmin_cl_table, capitalized_name_mock):
     Group.objects.create(name='abc')
     # assert root cause for failure in
     # django/contrib/admin/templatetags/admin_list.py
     assert not getattr(capitalized_name_mock, 'boolean', False)
     capitalized_name_mock.return_value = 'xyz'
-    headers, rows = get_group_changelist_table(admin_client)
+    headers, rows = myadmin_cl_table()
     assert rows == [['', 'abc', 'xyz']]
     assert capitalized_name_mock.called
     assert 1 == capitalized_name_mock.call_count
