@@ -37,3 +37,16 @@ def test_can_mock_custom_method_on_mygroupadmin(admin_client, db):
         assert rows == [['', 'foo', 'bar']]
     assert capitalized_name_mock.called
     assert 1 == capitalized_name_mock.call_count
+
+
+def test_can_use_mocked_mygroupadmin_capitalized_name_fixture(
+        admin_client, db, capitalized_name_mock):
+    Group.objects.create(name='abc')
+    # assert root cause for failure in
+    # django/contrib/admin/templatetags/admin_list.py
+    assert not getattr(capitalized_name_mock, 'boolean', False)
+    capitalized_name_mock.return_value = 'xyz'
+    headers, rows = get_group_changelist_table(admin_client)
+    assert rows == [['', 'abc', 'xyz']]
+    assert capitalized_name_mock.called
+    assert 1 == capitalized_name_mock.call_count
