@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.core.cache import caches
 from django_admin_caching.admin_row import CachedItemsForResult
 import pytest
-from testapp.six import patch, Mock
+from testapp.sixmocks import patch, Mock
 from testapp.test_helpers import get_group_changelist_table
 
 

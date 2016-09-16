@@ -1,6 +1,6 @@
 from django_admin_caching.patching import Patched
 import pytest
-from testapp.six import Mock
+from testapp.sixmocks import Mock
 from testapp import to_be_patched
 
 

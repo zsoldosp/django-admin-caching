@@ -2,7 +2,7 @@ from django.core.urlresolvers import resolve
 from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group
 import pytest
-from testapp.six import patch
+from testapp.sixmocks import patch
 
 
 def test_the_admin_is_configured_working(myadmin_cl_table):

@@ -8,7 +8,7 @@ from django_admin_caching.patching import Patched
 from django_admin_caching.admin_row import \
     CachedItemsForResult, cached_items_for_result
 import pytest
-from testapp.six import patch, DEFAULT, call
+from testapp.sixmocks import patch, DEFAULT, call
 
 
 @pytest.mark.acceptance
