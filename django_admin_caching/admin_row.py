@@ -1,4 +1,4 @@
-from django.core.cache import cache
+from django.core.cache import caches
 
 
 def cached_items_for_result(orig, cl, result, form):
@@ -22,20 +22,17 @@ class CachedItemsForResult(object):
         return self.from_cache()
 
     def cache(self, res):
-        cache.set(key=self.cache_key(), value=res)
+        self.cache_to_use().set(key=self.cache_key(), value=res)
 
     def from_cache(self):
-        return cache.get(key=self.cache_key())
+        return self.cache_to_use().get(key=self.cache_key())
 
     def should_build(self):
-        return not self.should_cache() or self.cache_key() not in cache
+        return not self.should_cache() or \
+            self.cache_key() not in self.cache_to_use()
 
     def should_cache(self):
         return getattr(self.cl.model_admin, 'do_admin_caching', None)
-
-    def result_from_cache(self):
-        key = self.cache_key()
-        return cache.get(key=key)
 
     def cache_key(self):
         admin_cls = type(self.cl.model_admin)
@@ -46,6 +43,13 @@ class CachedItemsForResult(object):
             type(self.result).__name__,
             self.result_cache_key()
         )
+
+    def cache_to_use(self):
+        return caches[self.cache_to_use_name()]
+
+    def cache_to_use_name(self):
+        return getattr(
+            self.cl.model_admin, 'admin_caching_cache_name', 'default')
 
     def result_cache_key(self):
         custom_key = getattr(self.cl.model_admin, 'admin_caching_key', None)

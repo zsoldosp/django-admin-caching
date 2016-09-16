@@ -33,6 +33,7 @@ def cached_item_for_result():
     cl_mock = Mock()
     cl_mock.model_admin = Mock()
     cl_mock.model_admin.do_admin_caching = True
+    cl_mock.model_admin.admin_caching_cache_name = 'default'
     model_obj = Group(pk=2)
     orig_mock = Mock()
     orig_mock.return_value = ['1', '2', '3']

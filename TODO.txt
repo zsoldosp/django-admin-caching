@@ -1,4 +1,4 @@
-* allow specifying which cache to use
+* rename config vars to have the same base prefix
 * allow specifying timeout
 * provide hook to programmatically invalidate cache (e.g.: cron)
 * for Patched, should we use __code__.co_varnames to ensure the right
