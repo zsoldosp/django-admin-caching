@@ -1,4 +1,4 @@
 try:
-    from unittest.mock import patch, Mock, DEFAULT  # noqa: F401
+    from unittest.mock import patch, Mock, DEFAULT, call  # noqa: F401
 except:
-    from mock import patch, Mock, DEFAULT  # noqa: F401
+    from mock import patch, Mock, DEFAULT, call  # noqa: F401

@@ -5,7 +5,50 @@ from django_admin_caching.patching import Patched
 from django_admin_caching.admin_row import \
     CachedItemsForResult, cached_items_for_result
 import pytest
-from testapp.six import patch, DEFAULT
+from testapp.six import patch, DEFAULT, call
+
+
+@pytest.mark.acceptance
+def test_caches_admin_row(
+        myadmin_cl_table, capitalized_name_mock):
+    foo = Group.objects.create(name='foo')
+    bar = Group.objects.create(name='bar')
+    baz = Group.objects.create(name='baz')
+    capitalized_name_mock.return_value = 'xyz'
+
+    uncached_headers, uncached_rows = myadmin_cl_table()
+    assert uncached_rows == [
+        ['', 'baz', 'xyz'],
+        ['', 'bar', 'xyz'],
+        ['', 'foo', 'xyz'],
+    ]
+    assert 3 == capitalized_name_mock.call_count
+    capitalized_name_mock.assert_has_calls(
+        [call(baz), call(bar), call(foo)],
+        any_order=False
+    )
+
+    capitalized_name_mock.reset_mock()
+    cached_headers, cached_rows = myadmin_cl_table()
+    assert 0 == capitalized_name_mock.call_count, 'no new calls'
+    assert uncached_headers == cached_headers
+    assert uncached_rows == cached_rows
+
+    foo.name = 'FOO'
+    foo.save()
+    capitalized_name_mock.reset_mock()
+    partly_cached_headers, partly_cached_rows = myadmin_cl_table()
+    assert 1 == capitalized_name_mock.call_count, 'no new calls'
+    capitalized_name_mock.assert_has_calls(
+        [call(foo)],
+        any_order=False
+    )
+    assert uncached_headers == partly_cached_headers
+    assert partly_cached_rows == [
+        ['', 'baz', 'xyz'],
+        ['', 'bar', 'xyz'],
+        ['', 'FOO', 'xyz'],
+    ]
 
 
 def test_admin_list_items_for_result_is_patched_by_app():

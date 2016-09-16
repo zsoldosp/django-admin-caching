@@ -13,6 +13,9 @@ class MyGroupAdmin(admin.ModelAdmin):
     def capitalized_name(self, obj):
         return obj.name.capitalize()
 
+    def admin_caching_key(self, obj):
+        return obj.name
+
 
 admin.site.unregister(Group)
 admin.site.register(Group, MyGroupAdmin)
