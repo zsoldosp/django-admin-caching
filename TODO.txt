@@ -1,0 +1,6 @@
+* trigger caching absed on flag only
+* allow specifying which cache to use
+* allow specifying timeout
+* provide hook to programmatically invalidate cache (e.g.: cron)
+* for Patched, should we use __code__.co_varnames to ensure the right
+  signature is patched?
