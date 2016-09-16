@@ -167,7 +167,7 @@ class TestCachingOnlyAppliesWhenAdminClassIsMarkedAsSuch(object):
 
     def test_explicit_attribute_is_true(self, cached_item_for_result,
                                         django_caches):
-        cached_item_for_result.cl.model_admin.do_admin_caching = True
+        cached_item_for_result.cl.model_admin.admin_caching_enabled = True
         assert cached_item_for_result.should_cache()
         cached_item_for_result.items_for_result()
         assert cached_item_for_result.orig.called
@@ -177,7 +177,7 @@ class TestCachingOnlyAppliesWhenAdminClassIsMarkedAsSuch(object):
 
     def test_explicit_attribute_is_false(self, cached_item_for_result,
                                          django_caches):
-        cached_item_for_result.cl.model_admin.do_admin_caching = False
+        cached_item_for_result.cl.model_admin.admin_caching_enabled = False
         cached_item_for_result.items_for_result()
         assert not cached_item_for_result.should_cache()
         assert cached_item_for_result.orig.called

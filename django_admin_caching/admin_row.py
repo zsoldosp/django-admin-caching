@@ -32,7 +32,7 @@ class CachedItemsForResult(object):
             self.cache_key() not in self.cache_to_use()
 
     def should_cache(self):
-        return getattr(self.cl.model_admin, 'do_admin_caching', None)
+        return getattr(self.cl.model_admin, 'admin_caching_enabled', None)
 
     def cache_key(self):
         admin_cls = type(self.cl.model_admin)

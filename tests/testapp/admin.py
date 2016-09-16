@@ -10,7 +10,7 @@ class MyGroupAdmin(admin.ModelAdmin):
         ('readonly', ['pk', 'capitalized_name']),
     )
 
-    do_admin_caching = True
+    admin_caching_enabled = True
 
     def capitalized_name(self, obj):
         return obj.name.capitalize()

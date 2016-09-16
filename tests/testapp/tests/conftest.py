@@ -32,7 +32,7 @@ def myadmin_cl_table(db, admin_client):
 def cached_item_for_result():
     cl_mock = Mock()
     cl_mock.model_admin = Mock()
-    cl_mock.model_admin.do_admin_caching = True
+    cl_mock.model_admin.admin_caching_enabled = True
     cl_mock.model_admin.admin_caching_cache_name = 'default'
     model_obj = Group(pk=2)
     orig_mock = Mock()
