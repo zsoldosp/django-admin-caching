@@ -1,6 +1,42 @@
 from django.contrib.auth.models import Group
+from django.contrib.admin.templatetags import admin_list
 from django.contrib.sessions.models import Session
+from django_admin_caching.patching import Patched
+from django_admin_caching.admin_row import \
+    CachedItemsForResult, cached_items_for_result
 import pytest
+from testapp.six import patch, DEFAULT
+
+
+def test_admin_list_items_for_result_is_patched_by_app():
+    assert isinstance(admin_list.items_for_result, Patched)
+    orig = admin_list.items_for_result.orig
+    new = admin_list.items_for_result.new
+    assert orig.__code__.co_filename == \
+        admin_list.paginator_number.__code__.co_filename
+    assert new == cached_items_for_result
+    assert get_argnames(new) == ('orig', ) + get_argnames(orig)
+
+
+def test_wrapper_fn_calls_class_tested_below():
+    mocks = patch.multiple(
+        CachedItemsForResult, __init__=DEFAULT, items_for_result=DEFAULT)
+    with mocks as cifr_mocks:
+        cifr_mocks['__init__'].return_value = None
+        orig = object()
+        cl = object()
+        result = object()
+        form = object()
+        cached_items_for_result(orig=orig, cl=cl, result=result, form=form)
+    assert cifr_mocks['__init__'].called
+    cifr_mocks['__init__'].assert_called_once_with(
+        orig=orig, cl=cl, result=result, form=form)
+    assert cifr_mocks['items_for_result'].called
+    cifr_mocks['items_for_result'].assert_called_once_with()
+
+
+def get_argnames(fn):
+    return fn.__code__.co_varnames[:fn.__code__.co_argcount]
 
 
 @pytest.mark.parametrize(

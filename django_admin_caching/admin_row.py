@@ -1,4 +1,9 @@
+from django.contrib.admin.templatetags import admin_list
 from django.core.cache import cache
+
+def cached_items_for_result(orig, cl, result, form):
+    cifr = CachedItemsForResult(orig=orig, cl=cl, result=result, form=form)
+    return cifr.items_for_result()
 
 
 class CachedItemsForResult(object):
