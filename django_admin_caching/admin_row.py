@@ -15,12 +15,23 @@ class CachedItemsForResult(object):
         self.form = form
 
     def items_for_result(self):
-        key = self.cache_key()
-        if key not in cache:
+        if self.should_build():
             res = list(self.orig(self.cl, self.result, self.form))
-            cache.set(key=key, value=res)
+            self.cache(res)
             return res
-        return cache.get(key=key)
+        return self.from_cache()
+
+    def cache(self, res):
+        cache.set(key=self.cache_key(), value=res)
+
+    def from_cache(self):
+        return cache.get(key=self.cache_key())
+
+    def should_build(self):
+        return not self.should_cache() or self.cache_key() not in cache
+
+    def should_cache(self):
+        return getattr(self.cl.model_admin, 'do_admin_caching', None)
 
     def result_from_cache(self):
         key = self.cache_key()

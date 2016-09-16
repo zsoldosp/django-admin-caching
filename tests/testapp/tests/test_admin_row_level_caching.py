@@ -158,3 +158,38 @@ def test_should_key_change_it_calls_again_original(
     cached_item_for_result.orig.assert_called_once_with(
         cached_item_for_result.cl, cached_item_for_result.result,
         cached_item_for_result.form)
+
+
+class TestCachingOnlyAppliesWhenAdminClassIsMarkedAsSuch(object):
+
+    def test_explicit_attribute_is_true(self, cached_item_for_result,
+                                        django_caches):
+        cached_item_for_result.cl.model_admin.do_admin_caching = True
+        assert cached_item_for_result.should_cache()
+        cached_item_for_result.items_for_result()
+        assert cached_item_for_result.orig.called
+        cached_item_for_result.orig.reset_mock()
+        cached_item_for_result.items_for_result()
+        assert not cached_item_for_result.orig.called
+
+    def test_explicit_attribute_is_false(self, cached_item_for_result,
+                                         django_caches):
+        cached_item_for_result.cl.model_admin.do_admin_caching = False
+        cached_item_for_result.items_for_result()
+        assert not cached_item_for_result.should_cache()
+        assert cached_item_for_result.orig.called
+        cached_item_for_result.orig.reset_mock()
+        cached_item_for_result.items_for_result()
+        assert cached_item_for_result.orig.called
+
+    def test_has_no_attribute(self, cached_item_for_result, django_caches):
+        class ModelAdmin(object):
+            pass
+
+        cached_item_for_result.cl.model_admin = ModelAdmin()
+        assert not cached_item_for_result.should_cache()
+        cached_item_for_result.items_for_result()
+        assert cached_item_for_result.orig.called
+        cached_item_for_result.orig.reset_mock()
+        cached_item_for_result.items_for_result()
+        assert cached_item_for_result.orig.called

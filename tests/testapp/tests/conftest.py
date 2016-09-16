@@ -31,6 +31,8 @@ def myadmin_cl_table(db, admin_client):
 @pytest.fixture()
 def cached_item_for_result():
     cl_mock = Mock()
+    cl_mock.model_admin = Mock()
+    cl_mock.model_admin.do_admin_caching = True
     model_obj = Group(pk=2)
     orig_mock = Mock()
     orig_mock.return_value = ['1', '2', '3']

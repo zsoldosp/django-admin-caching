@@ -1,4 +1,3 @@
-* trigger caching absed on flag only
 * allow specifying which cache to use
 * allow specifying timeout
 * provide hook to programmatically invalidate cache (e.g.: cron)
