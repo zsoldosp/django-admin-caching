@@ -136,7 +136,6 @@ def test_second_call_for_unchanged_key_returns_cached_witout_calling_orig(
         cached_item_for_result, django_caches):
     first_result = list(cached_item_for_result.items_for_result())
     cached_item_for_result.orig.reset_mock()
-    assert not cached_item_for_result.orig.called
     second_result = list(cached_item_for_result.items_for_result())
     assert not cached_item_for_result.orig.called
     assert first_result == second_result
