@@ -1,6 +1,5 @@
 from django.contrib.auth.models import Group
 from django.contrib.admin.templatetags import admin_list
-from django.contrib.sessions.models import Session
 from django.core.cache import caches
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.test.utils import override_settings
@@ -83,36 +82,6 @@ def test_wrapper_fn_calls_class_tested_below():
 
 def get_argnames(fn):
     return fn.__code__.co_varnames[:fn.__code__.co_argcount]
-
-
-@pytest.mark.parametrize(
-    'admin_cls,result,expected_key', [
-        (Session, Group(pk=3),
-         'django.contrib.sessions.models.Session-auth.Group-3'),
-        (Group, Group(pk=5),
-         'django.contrib.auth.models.Group-auth.Group-5'),
-    ]
-)
-def test_cache_key_is_derived_from_admin_and_obj_by_default(
-        cached_item_for_result, admin_cls, result, expected_key):
-    cached_item_for_result.cl.model_admin = admin_cls()
-    cached_item_for_result.result = result
-    assert cached_item_for_result.result_cache_key() == '{}'.format(result.pk)
-    assert cached_item_for_result.cache_key() == expected_key
-
-
-def test_can_provide_custom_override_to_cache_key_through_model_admin(
-        cached_item_for_result):
-    class AdminWithCustomCacheKey(object):
-        def admin_caching_key(self, obj):
-            return 'Foo:Bar:9'
-
-    cached_item_for_result.cl.model_admin = AdminWithCustomCacheKey()
-    cached_item_for_result.result = Group(pk=55)
-    assert cached_item_for_result.result_cache_key() == 'Foo:Bar:9'
-    assert cached_item_for_result.cache_key() == \
-        '{}.AdminWithCustomCacheKey-auth.Group-Foo:Bar:9'.format(
-            AdminWithCustomCacheKey.__module__)
 
 
 def test_first_call_to_items_for_result_calls_orig_and_puts_it_to_cache(
