@@ -45,3 +45,16 @@ class CacheKey(object):
         return '{}'.format(
             self.result.pk
         )
+
+
+class AutoKeyedCache(object):
+
+    def __init__(self, result, model_admin):
+        self.ck = CacheKey(result=result, model_admin=model_admin)
+        self.cfg = CacheConfig(model_admin=self.ck.model_admin)
+
+    def set(self, value):
+        self.cfg.cache.set(key=self.ck.key, value=value)
+
+    def get(self):
+        return self.cfg.cache.get(key=self.ck.key)
