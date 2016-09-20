@@ -61,5 +61,4 @@ class AutoKeyedCache(object):
         return self.cfg.cache.get(key=self.ck.key)
 
     def has_value(self):
-        print self.cfg.is_enabled, self.ck.key in self.cfg.cache, self.ck.key
         return self.cfg.is_enabled and self.ck.key in self.cfg.cache
