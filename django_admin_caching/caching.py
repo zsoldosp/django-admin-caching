@@ -1,6 +1,12 @@
+from django.contrib.admin.sites import site
+
+
 class CacheKey(object):
-    def __init__(self, model_admin, result):
-        self.model_admin = model_admin
+    def __init__(self, result, model_admin=None):
+        if model_admin is None:
+            self.model_admin = site._registry[type(result)]
+        else:
+            self.model_admin = model_admin
         self.result = result
 
     @property
