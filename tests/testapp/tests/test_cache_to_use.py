@@ -27,7 +27,7 @@ class TestAdminClassCanSpecifyWhichCacheToUse(object):
         with self.caches('default'):
             cfg = CacheConfig(model_admin=AttributeSpecifiesCacheToUse())
             with pytest.raises(InvalidCacheBackendError):
-                x = cfg.cache   # accessing the cache
+                cfg.cache   # accessing the cache
 
     class caches(override_settings):
         def __init__(self, *names):

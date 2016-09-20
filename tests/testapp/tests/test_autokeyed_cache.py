@@ -39,7 +39,8 @@ def test_akc_is_null_object_so_set_and_has_value_works(django_caches):
     class DisabledModelAdmin(object):
         admin_caching_enabled = False
 
-    akc = AutoKeyedCache(result=Group(name='baz'), model_admin=DisabledModelAdmin())
+    akc = AutoKeyedCache(
+        result=Group(name='baz'), model_admin=DisabledModelAdmin())
     assert not akc.has_value()
     assert akc.ck.key not in akc.cfg.cache
     akc.set('sdf')  # should be a noop
