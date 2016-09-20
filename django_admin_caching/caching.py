@@ -49,7 +49,7 @@ class CacheKey(object):
 
 class AutoKeyedCache(object):
 
-    def __init__(self, result, model_admin):
+    def __init__(self, result, model_admin=None):
         self.ck = CacheKey(result=result, model_admin=model_admin)
         self.cfg = CacheConfig(model_admin=self.ck.model_admin)
 

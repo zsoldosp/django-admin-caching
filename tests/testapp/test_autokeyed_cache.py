@@ -21,3 +21,9 @@ def test_get_set_uses_correct_cache():
     assert akc.ck.key in akc.cfg.cache
     assert akc.cfg.cache.get(akc.ck.key) == 'sdf'
     assert 'sdf' == akc.get()
+
+
+def test_can_be_created_without_a_model_admin_specified():
+    akc = AutoKeyedCache(result=Group(pk=3))
+    assert akc.cfg.model_admin is not None
+    assert akc.cfg.model_admin == akc.ck.model_admin
