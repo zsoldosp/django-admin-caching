@@ -58,3 +58,6 @@ class AutoKeyedCache(object):
 
     def get(self):
         return self.cfg.cache.get(key=self.ck.key)
+
+    def has_value(self):
+        return self.ck.key in self.cfg.cache

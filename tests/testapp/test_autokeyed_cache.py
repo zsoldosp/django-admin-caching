@@ -27,3 +27,10 @@ def test_can_be_created_without_a_model_admin_specified():
     akc = AutoKeyedCache(result=Group(pk=3))
     assert akc.cfg.model_admin is not None
     assert akc.cfg.model_admin == akc.ck.model_admin
+
+
+def test_has_value_works_correctly():
+    akc = AutoKeyedCache(result=Group(pk=3))
+    assert not akc.has_value()
+    akc.set('abcde')
+    assert akc.has_value()
