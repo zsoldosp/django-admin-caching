@@ -13,7 +13,7 @@ class TestAdminClassCanSpecifyWhichCacheToUse(object):
         assert cfg.cache_to_use_name() == 'default'
         assert cfg.cache == caches['default']
 
-    def test_specified_cache_is_used(self, cached_item_for_result):
+    def test_specified_cache_is_used(self):
         class AttributeSpecifiesCacheToUse(object):
             admin_caching_cache_name = 'foo'
         with self.caches('foo'):
