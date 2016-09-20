@@ -110,22 +110,7 @@ def test_second_call_for_unchanged_key_returns_cached_witout_calling_orig(
     assert first_result == second_result
 
 
-def test_should_key_change_it_calls_again_original(
-        cached_item_for_result, django_caches):
-    class AdminWithCustomCacheKey(object):
-        def admin_caching_key(self, obj):
-            return obj.name
 
-    cached_item_for_result.result.name = 'first'
-    cached_item_for_result.cl.model_admin = AdminWithCustomCacheKey()
-    cached_item_for_result.items_for_result()
-    cached_item_for_result.orig.reset_mock()
 
-    cached_item_for_result.result.name = 'second'
-    cached_item_for_result.items_for_result()
-    assert cached_item_for_result.orig.called
-    cached_item_for_result.orig.assert_called_once_with(
-        cached_item_for_result.cl, cached_item_for_result.result,
-        cached_item_for_result.form)
 
 

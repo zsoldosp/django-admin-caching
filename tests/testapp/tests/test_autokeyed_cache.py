@@ -46,3 +46,12 @@ def test_akc_is_null_object_so_set_and_has_value_works(django_caches):
     akc.set('sdf')  # should be a noop
     assert not akc.has_value()
     assert akc.ck.key not in akc.cfg.cache
+
+
+def test_after_runtime_key_change_its_not_in_cache(django_caches):
+    akc = AutoKeyedCache(result=Group(name='first key'))
+    assert not akc.has_value()
+    akc.set('abcde')
+    assert akc.has_value()
+    akc.ck.result.name = 'second key'
+    assert not akc.has_value()
