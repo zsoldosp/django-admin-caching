@@ -1,5 +1,5 @@
 from django.core.cache import caches
-from django_admin_caching.caching import CacheKey
+from django_admin_caching.caching import CacheKey, CacheConfig
 
 
 def cached_items_for_result(orig, cl, result, form):
@@ -16,6 +16,7 @@ class CachedItemsForResult(object):
         self.form = form
         self.cache_key_obj = CacheKey(
             model_admin=cl.model_admin, result=result)
+        self.cache_cfg = CacheConfig(model_admin=self.cl.model_admin)
 
     def items_for_result(self):
         if self.should_build():
@@ -44,5 +45,4 @@ class CachedItemsForResult(object):
         return caches[self.cache_to_use_name()]
 
     def cache_to_use_name(self):
-        return getattr(
-            self.cl.model_admin, 'admin_caching_cache_name', 'default')
+        return self.cache_cfg.cache_to_use_name()

@@ -1,6 +1,15 @@
 from django.contrib.admin.sites import site
 
 
+class CacheConfig(object):
+    def __init__(self, model_admin):
+        self.model_admin = model_admin
+
+    def cache_to_use_name(self):
+        return getattr(
+            self.model_admin, 'admin_caching_cache_name', 'default')
+
+
 class CacheKey(object):
     def __init__(self, result, model_admin=None):
         if model_admin is None:
