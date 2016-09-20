@@ -1,4 +1,5 @@
 from django.contrib.admin.sites import site
+from django.core.cache import caches
 
 
 class CacheConfig(object):
@@ -8,6 +9,10 @@ class CacheConfig(object):
     def cache_to_use_name(self):
         return getattr(
             self.model_admin, 'admin_caching_cache_name', 'default')
+
+    @property
+    def cache(self):
+        return caches[self.cache_to_use_name()]
 
 
 class CacheKey(object):

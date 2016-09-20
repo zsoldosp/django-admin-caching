@@ -1,8 +1,5 @@
 from django.contrib.auth.models import Group
 from django.contrib.admin.templatetags import admin_list
-from django.core.cache import caches
-from django.core.cache.backends.base import InvalidCacheBackendError
-from django.test.utils import override_settings
 from django_admin_caching.patching import Patched
 from django_admin_caching.admin_row import \
     CachedItemsForResult, cached_items_for_result
@@ -167,51 +164,3 @@ class TestCachingOnlyAppliesWhenAdminClassIsMarkedAsSuch(object):
         assert cached_item_for_result.orig.called
 
 
-class TestAdminClassCanSpecifyWhichCacheToUse(object):
-
-    def test_nothing_specified_default_cache_is_used(self,
-                                                     cached_item_for_result):
-        class NoAttributeAdmin(object):
-            pass
-
-        cached_item_for_result.cl.model_admin = NoAttributeAdmin()
-        assert cached_item_for_result.cache_to_use_name() == 'default'
-        with self.caches('default', 'custom'):
-            cached_item_for_result.cache('some result')
-            key = cached_item_for_result.cache_key()
-            assert key in caches['default']
-            assert cached_item_for_result.from_cache() == 'some result'
-            assert key not in caches['custom']
-
-    def test_specified_cache_is_used(self, cached_item_for_result):
-        cached_item_for_result.cl.model_admin.admin_caching_cache_name = 'foo'
-        assert cached_item_for_result.cache_to_use_name() == 'foo'
-        with self.caches('default', 'foo'):
-            cached_item_for_result.cache('some result')
-            key = cached_item_for_result.cache_key()
-            assert key in caches['foo']
-            assert cached_item_for_result.from_cache() == 'some result'
-            assert key not in caches['default']
-
-    def test_if_wrong_cache_is_specified_there_is_an_error(
-            self, cached_item_for_result):
-        cached_item_for_result.cl.model_admin.admin_caching_cache_name = \
-            'no-such-cache'
-        assert cached_item_for_result.cache_to_use_name() == 'no-such-cache'
-        with self.caches('default', 'foo'):
-            with pytest.raises(InvalidCacheBackendError):
-                cached_item_for_result.cache('some result')
-
-    class caches(override_settings):
-        def __init__(self, *names):
-            self.names = names
-            self.caches_dict = dict(
-                (name, {
-                    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-                    'LOCATION': name,
-                })
-                for name in names
-            )
-            super(
-                TestAdminClassCanSpecifyWhichCacheToUse.caches, self).__init__(
-                    CACHES=self.caches_dict)
