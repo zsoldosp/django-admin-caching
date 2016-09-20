@@ -6,6 +6,10 @@ class CacheConfig(object):
     def __init__(self, model_admin):
         self.model_admin = model_admin
 
+    @property
+    def is_enabled(self):
+        return getattr(self.model_admin, 'admin_caching_enabled', False)
+
     def cache_to_use_name(self):
         return getattr(
             self.model_admin, 'admin_caching_cache_name', 'default')
