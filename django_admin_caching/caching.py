@@ -54,10 +54,12 @@ class AutoKeyedCache(object):
         self.cfg = CacheConfig(model_admin=self.ck.model_admin)
 
     def set(self, value):
-        self.cfg.cache.set(key=self.ck.key, value=value)
+        if self.cfg.is_enabled:
+            self.cfg.cache.set(key=self.ck.key, value=value)
 
     def get(self):
         return self.cfg.cache.get(key=self.ck.key)
 
     def has_value(self):
-        return self.ck.key in self.cfg.cache
+        print self.cfg.is_enabled, self.ck.key in self.cfg.cache, self.ck.key
+        return self.cfg.is_enabled and self.ck.key in self.cfg.cache
