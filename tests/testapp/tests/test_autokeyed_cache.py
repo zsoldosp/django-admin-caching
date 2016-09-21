@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django_admin_caching.caching import CacheKey, CacheConfig, AutoKeyedCache
 
 
@@ -76,3 +76,9 @@ def test_can_remove_itself_from_cache_even_if_not_in_it(django_caches):
     akc.delete()
     assert not akc.has_value()
     assert akc.cfg.cache.get('foo') == 'foo'  # don't remove unrelated entries
+
+
+def test_works_with_object_that_isnt_enabled_for(django_caches):
+    akc = AutoKeyedCache(result=User())
+    assert not akc.cfg.is_enabled
+    assert not akc.has_value()
