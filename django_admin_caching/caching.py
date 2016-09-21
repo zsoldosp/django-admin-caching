@@ -62,3 +62,6 @@ class AutoKeyedCache(object):
 
     def has_value(self):
         return self.cfg.is_enabled and self.ck.key in self.cfg.cache
+
+    def delete(self):
+        self.cfg.cache.delete(key=self.ck.key)

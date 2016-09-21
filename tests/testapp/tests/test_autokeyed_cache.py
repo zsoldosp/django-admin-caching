@@ -55,3 +55,24 @@ def test_after_runtime_key_change_its_not_in_cache(django_caches):
     assert akc.has_value()
     akc.ck.result.name = 'second key'
     assert not akc.has_value()
+
+
+def test_can_remove_itself_from_the_cache(django_caches):
+    akc = AutoKeyedCache(result=Group(name='key'))
+    akc.cfg.cache.set('other key', 'other val')
+    assert not akc.has_value()
+    akc.set('foo')
+    akc.delete()
+    assert not akc.has_value()
+    assert akc.ck.key not in akc.cfg.cache
+    assert akc.cfg.cache.get('other key') == \
+        'other val'  # don't remove unrelated entries
+
+
+def test_can_remove_itself_from_cache_even_if_not_in_it(django_caches):
+    akc = AutoKeyedCache(result=Group(name='key'))
+    akc.cfg.cache.set('foo', 'foo')
+    assert not akc.has_value()
+    akc.delete()
+    assert not akc.has_value()
+    assert akc.cfg.cache.get('foo') == 'foo'  # don't remove unrelated entries
