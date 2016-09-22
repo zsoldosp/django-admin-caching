@@ -59,14 +59,14 @@ Release Notes
 .. contributing start
 
 Contributing
-------------
+============
 
 As an open source project, we welcome contributions.
 
 The code lives on `github <https://github.com/PaesslerAG/django-admin-caching>`_.
 
 Reporting issues/improvements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 Please open an `issue on github <https://github.com/PaesslerAG/django-admin-caching/issues/>`_
 or provide a `pull request <https://github.com/PaesslerAG/django-admin-caching/pulls/>`_
@@ -77,7 +77,7 @@ However, if the diff of a pull request better illustrates the point, feel free t
 it a pull request anyway.
 
 Pull Requests
-~~~~~~~~~~~~~
+-------------
 
 * for code changes
 
@@ -86,7 +86,7 @@ Pull Requests
   * if the change is significant enough, documentation has to be provided
 
 Setting up all Python versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------
 
 ::
 
@@ -99,7 +99,7 @@ Setting up all Python versions
     done
 
 Code of Conduct
-~~~~~~~~~~~~~~~
+---------------
 
 As it is a Django extension, it follows
 `Django's own Code of Conduct <https://www.djangoproject.com/conduct/>`_.
