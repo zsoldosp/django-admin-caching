@@ -1,6 +1,8 @@
 .PHONY: clean-pyc clean-build docs clean-tox
-PYPI_SERVER?=https://pypi.python.org/simple/
+PYPI_SERVER?=pypi
 SHELL=/bin/bash
+VERSION=$(shell python -c"import django_admin_caching as m; print(m.__version__)")
+REMOTE_NAME?=origin
 
 help:
 	@echo "clean-build - remove build artifacts"
@@ -10,7 +12,7 @@ help:
 	@echo "testall - run tests on every Python version with tox"
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
-	@echo "tag - tag the current version and push it to origin"
+	@echo "tag - tag the current version and push it to REMOTE_NAME"
 	@echo "release - package and upload a release"
 	@echo "sdist - package"
 
@@ -45,29 +47,32 @@ coverage:
 	coverage html
 	open htmlcov/index.html
 
+docs: outfile=readme-errors
 docs:
-	rm -f docs/django-admin-caching.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ django-admin-caching
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	open docs/_build/html/index.html
+	rst2html.py README.rst > /dev/null 2> ${outfile}
+	cat ${outfile}
+	test 0 -eq `cat ${outfile} | wc -l`
 
-tag: VERSION=$(shell python -c"import django_admin_caching as m; print(m.__version__)")
+
 tag: TAG:=v${VERSION}
-tag: exit_code:=$(shell git ls-remote origin | grep -q tags/${TAG}; echo $$?)
+tag: exit_code=$(shell git ls-remote ${REMOTE_NAME} | grep -q tags/${TAG}; echo $$?)
 tag:
 ifeq ($(exit_code),0)
 	@echo "Tag ${TAG} already present"
 else
-	git tag -a ${TAG} -m"${TAG}"; git push --tags origin
+	git tag -a ${TAG} -m"${TAG}"; git push --tags ${REMOTE_NAME}
 endif
 
-release: clean tag
+package: clean
+	python setup.py sdist
+	python setup.py bdist_wheel
+
+release: whl=dist/django_admin_caching-${VERSION}-py2.py3-none-any.whl
+release: clean package tag
+	test -f ${whl}
 	echo "if the release fails, setup a ~/pypirc file as per https://docs.python.org/2/distutils/packageindex.html#pypirc"
-	python setup.py register -r ${PYPI_SERVER}
-	python setup.py sdist upload -r ${PYPI_SERVER}
-	python setup.py bdist_wheel upload -r ${PYPI_SERVER}
+	twine register ${whl} -r ${PYPI_SERVER}
+	twine upload dist/* -r ${PYPI_SERVER}
 
 sdist: clean
 	python setup.py sdist
