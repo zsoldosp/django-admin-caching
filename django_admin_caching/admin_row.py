@@ -1,60 +1,26 @@
-from django.core.cache import caches
+from django.contrib.admin.templatetags import admin_list
+from django_admin_caching.caching import AutoKeyedCache
+from django_admin_caching.patching import Patched
 
 
-def cached_items_for_result(orig, cl, result, form):
-    cifr = CachedItemsForResult(orig=orig, cl=cl, result=result, form=form)
-    return cifr.items_for_result()
+class PatchedAdminListItemsForResult(Patched):
 
+    auto_keyed_cache_cls = AutoKeyedCache
 
-class CachedItemsForResult(object):
-
-    def __init__(self, orig, cl, result, form):
-        self.orig = orig
-        self.cl = cl
-        self.result = result
-        self.form = form
-
-    def items_for_result(self):
-        if self.should_build():
-            res = list(self.orig(self.cl, self.result, self.form))
-            self.cache(res)
-            return res
-        return self.from_cache()
-
-    def cache(self, res):
-        self.cache_to_use().set(key=self.cache_key(), value=res)
-
-    def from_cache(self):
-        return self.cache_to_use().get(key=self.cache_key())
-
-    def should_build(self):
-        return not self.should_cache() or \
-            self.cache_key() not in self.cache_to_use()
-
-    def should_cache(self):
-        return getattr(self.cl.model_admin, 'admin_caching_enabled', None)
-
-    def cache_key(self):
-        admin_cls = type(self.cl.model_admin)
-        return '{}.{}-{}.{}-{}'.format(
-            admin_cls.__module__,
-            admin_cls.__name__,
-            self.result._meta.app_label,
-            type(self.result).__name__,
-            self.result_cache_key()
+    def __init__(self):
+        super(PatchedAdminListItemsForResult, self).__init__(
+            orig=admin_list.items_for_result,
+            new=self.cached_items_for_result
         )
 
-    def cache_to_use(self):
-        return caches[self.cache_to_use_name()]
+    def to_akc(self, cl, result):
+        return self.auto_keyed_cache_cls(
+            model_admin=cl.model_admin, result=result)
 
-    def cache_to_use_name(self):
-        return getattr(
-            self.cl.model_admin, 'admin_caching_cache_name', 'default')
-
-    def result_cache_key(self):
-        custom_key = getattr(self.cl.model_admin, 'admin_caching_key', None)
-        if custom_key:
-            return custom_key(self.result)
-        return '{}'.format(
-            self.result.pk
-        )
+    def cached_items_for_result(self, orig, cl, result, form):
+        akc = self.to_akc(cl=cl, result=result)
+        if akc.has_value():
+            return akc.get()
+        res = list(orig(cl=cl, result=result, form=form))
+        akc.set(res)
+        return res

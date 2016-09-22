@@ -1,14 +1,8 @@
 from django.contrib.auth.models import Group
 from django.contrib.admin.templatetags import admin_list
-from django.contrib.sessions.models import Session
-from django.core.cache import caches
-from django.core.cache.backends.base import InvalidCacheBackendError
-from django.test.utils import override_settings
-from django_admin_caching.patching import Patched
-from django_admin_caching.admin_row import \
-    CachedItemsForResult, cached_items_for_result
+from django_admin_caching.admin_row import PatchedAdminListItemsForResult
 import pytest
-from testapp.sixmocks import patch, DEFAULT, call
+from testapp.sixmocks import Mock, call
 
 
 @pytest.mark.acceptance
@@ -55,194 +49,73 @@ def test_caches_admin_row(
 
 
 def test_admin_list_items_for_result_is_patched_by_app():
-    assert isinstance(admin_list.items_for_result, Patched)
+    assert isinstance(
+        admin_list.items_for_result, PatchedAdminListItemsForResult)
     orig = admin_list.items_for_result.orig
     new = admin_list.items_for_result.new
     assert orig.__code__.co_filename == \
         admin_list.paginator_number.__code__.co_filename
-    assert new == cached_items_for_result
-    assert get_argnames(new) == ('orig', ) + get_argnames(orig)
-
-
-def test_wrapper_fn_calls_class_tested_below():
-    mocks = patch.multiple(
-        CachedItemsForResult, __init__=DEFAULT, items_for_result=DEFAULT)
-    with mocks as cifr_mocks:
-        cifr_mocks['__init__'].return_value = None
-        orig = object()
-        cl = object()
-        result = object()
-        form = object()
-        cached_items_for_result(orig=orig, cl=cl, result=result, form=form)
-    assert cifr_mocks['__init__'].called
-    cifr_mocks['__init__'].assert_called_once_with(
-        orig=orig, cl=cl, result=result, form=form)
-    assert cifr_mocks['items_for_result'].called
-    cifr_mocks['items_for_result'].assert_called_once_with()
+    assert new == admin_list.items_for_result.cached_items_for_result
+    assert get_argnames(new) == ('self', 'orig', ) + get_argnames(orig)
 
 
 def get_argnames(fn):
     return fn.__code__.co_varnames[:fn.__code__.co_argcount]
 
 
-@pytest.mark.parametrize(
-    'admin_cls,result,expected_key', [
-        (Session, Group(pk=3),
-         'django.contrib.sessions.models.Session-auth.Group-3'),
-        (Group, Group(pk=5),
-         'django.contrib.auth.models.Group-auth.Group-5'),
-    ]
-)
-def test_cache_key_is_derived_from_admin_and_obj_by_default(
-        cached_item_for_result, admin_cls, result, expected_key):
-    cached_item_for_result.cl.model_admin = admin_cls()
-    cached_item_for_result.result = result
-    assert cached_item_for_result.result_cache_key() == '{}'.format(result.pk)
-    assert cached_item_for_result.cache_key() == expected_key
+@pytest.fixture()
+def palifr():
+    class MockedPatchedAdminListItemsForResult(PatchedAdminListItemsForResult):
+
+        def __init__(self):
+            super(MockedPatchedAdminListItemsForResult, self).__init__()
+            self.orig = Mock(name='orig list items for result')
+            self.orig.return_value = ['rendered', 'parts']
+            self.to_akc = Mock(name='to akc factory method')
+            self.akc_mock = Mock(name='the actual akc mock')
+            self.to_akc.return_value = self.akc_mock
+
+        @property
+        def all_mocks(self):
+            return [self.to_akc, self.orig, self.akc_mock]
+
+        def foreach_mock(self, fn):
+            for mock in self.all_mocks:
+                fn(mock)
+
+    obj = MockedPatchedAdminListItemsForResult()
+    obj.foreach_mock(lambda m: m.start())
+    yield obj
+    obj.foreach_mock(lambda m: m.stop())
 
 
-def test_can_provide_custom_override_to_cache_key_through_model_admin(
-        cached_item_for_result):
-    class AdminWithCustomCacheKey(object):
-        def admin_caching_key(self, obj):
-            return 'Foo:Bar:9'
+def test_if_not_in_cache_calls_orig_and_caches(palifr):
+    cl = object()
+    result = object()
+    form = object()
 
-    cached_item_for_result.cl.model_admin = AdminWithCustomCacheKey()
-    cached_item_for_result.result = Group(pk=55)
-    assert cached_item_for_result.result_cache_key() == 'Foo:Bar:9'
-    assert cached_item_for_result.cache_key() == \
-        '{}.AdminWithCustomCacheKey-auth.Group-Foo:Bar:9'.format(
-            AdminWithCustomCacheKey.__module__)
+    palifr.akc_mock.has_value.return_value = False
+    rendered = palifr(cl=cl, result=result, form=form)
 
-
-def test_first_call_to_items_for_result_calls_orig_and_puts_it_to_cache(
-        cached_item_for_result):
-    cached_item_for_result.items_for_result()
-    assert cached_item_for_result.orig.called
-    cached_item_for_result.orig.assert_called_once_with(
-        cached_item_for_result.cl, cached_item_for_result.result,
-        cached_item_for_result.form)
+    palifr.to_akc.assert_called_once_with(cl=cl, result=result)
+    palifr.akc_mock.has_value.assert_called_once_with()
+    palifr.orig.assert_called_once_with(cl=cl, result=result, form=form)
+    palifr.akc_mock.set.assert_called_once_with(rendered)
+    assert not palifr.akc_mock.get.called
 
 
-def test_first_call_puts_results_into_cache_and_can_read_it_from(
-        cached_item_for_result, django_caches):
-    first_result = list(cached_item_for_result.items_for_result())
-    cache = django_caches['default']
-    cache_key = cached_item_for_result.cache_key()
-    assert cache_key in cache
-    assert cache.get(cache_key)
-    result_from_cache = list(cached_item_for_result.from_cache())
-    assert first_result == result_from_cache
+def test_if_cache_has_item_it_is_returned_from_there(palifr):
+    cl = object()
+    result = object()
+    form = object()
 
+    palifr.akc_mock.has_value.return_value = True
+    palifr.akc_mock.get.return_value = ['cached', 'rendered', 'items']
 
-def test_second_call_for_unchanged_key_returns_cached_witout_calling_orig(
-        cached_item_for_result, django_caches):
-    first_result = list(cached_item_for_result.items_for_result())
-    cached_item_for_result.orig.reset_mock()
-    second_result = list(cached_item_for_result.items_for_result())
-    assert not cached_item_for_result.orig.called
-    assert first_result == second_result
-
-
-def test_should_key_change_it_calls_again_original(
-        cached_item_for_result, django_caches):
-    class AdminWithCustomCacheKey(object):
-        def admin_caching_key(self, obj):
-            return obj.name
-
-    cached_item_for_result.result.name = 'first'
-    cached_item_for_result.cl.model_admin = AdminWithCustomCacheKey()
-    cached_item_for_result.items_for_result()
-    cached_item_for_result.orig.reset_mock()
-
-    cached_item_for_result.result.name = 'second'
-    cached_item_for_result.items_for_result()
-    assert cached_item_for_result.orig.called
-    cached_item_for_result.orig.assert_called_once_with(
-        cached_item_for_result.cl, cached_item_for_result.result,
-        cached_item_for_result.form)
-
-
-class TestCachingOnlyAppliesWhenAdminClassIsMarkedAsSuch(object):
-
-    def test_explicit_attribute_is_true(self, cached_item_for_result,
-                                        django_caches):
-        cached_item_for_result.cl.model_admin.admin_caching_enabled = True
-        assert cached_item_for_result.should_cache()
-        cached_item_for_result.items_for_result()
-        assert cached_item_for_result.orig.called
-        cached_item_for_result.orig.reset_mock()
-        cached_item_for_result.items_for_result()
-        assert not cached_item_for_result.orig.called
-
-    def test_explicit_attribute_is_false(self, cached_item_for_result,
-                                         django_caches):
-        cached_item_for_result.cl.model_admin.admin_caching_enabled = False
-        cached_item_for_result.items_for_result()
-        assert not cached_item_for_result.should_cache()
-        assert cached_item_for_result.orig.called
-        cached_item_for_result.orig.reset_mock()
-        cached_item_for_result.items_for_result()
-        assert cached_item_for_result.orig.called
-
-    def test_has_no_attribute(self, cached_item_for_result, django_caches):
-        class ModelAdmin(object):
-            pass
-
-        cached_item_for_result.cl.model_admin = ModelAdmin()
-        assert not cached_item_for_result.should_cache()
-        cached_item_for_result.items_for_result()
-        assert cached_item_for_result.orig.called
-        cached_item_for_result.orig.reset_mock()
-        cached_item_for_result.items_for_result()
-        assert cached_item_for_result.orig.called
-
-
-class TestAdminClassCanSpecifyWhichCacheToUse(object):
-
-    def test_nothing_specified_default_cache_is_used(self,
-                                                     cached_item_for_result):
-        class NoAttributeAdmin(object):
-            pass
-
-        cached_item_for_result.cl.model_admin = NoAttributeAdmin()
-        assert cached_item_for_result.cache_to_use_name() == 'default'
-        with self.caches('default', 'custom'):
-            cached_item_for_result.cache('some result')
-            key = cached_item_for_result.cache_key()
-            assert key in caches['default']
-            assert cached_item_for_result.from_cache() == 'some result'
-            assert key not in caches['custom']
-
-    def test_specified_cache_is_used(self, cached_item_for_result):
-        cached_item_for_result.cl.model_admin.admin_caching_cache_name = 'foo'
-        assert cached_item_for_result.cache_to_use_name() == 'foo'
-        with self.caches('default', 'foo'):
-            cached_item_for_result.cache('some result')
-            key = cached_item_for_result.cache_key()
-            assert key in caches['foo']
-            assert cached_item_for_result.from_cache() == 'some result'
-            assert key not in caches['default']
-
-    def test_if_wrong_cache_is_specified_there_is_an_error(
-            self, cached_item_for_result):
-        cached_item_for_result.cl.model_admin.admin_caching_cache_name = \
-            'no-such-cache'
-        assert cached_item_for_result.cache_to_use_name() == 'no-such-cache'
-        with self.caches('default', 'foo'):
-            with pytest.raises(InvalidCacheBackendError):
-                cached_item_for_result.cache('some result')
-
-    class caches(override_settings):
-        def __init__(self, *names):
-            self.names = names
-            self.caches_dict = dict(
-                (name, {
-                    'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-                    'LOCATION': name,
-                })
-                for name in names
-            )
-            super(
-                TestAdminClassCanSpecifyWhichCacheToUse.caches, self).__init__(
-                    CACHES=self.caches_dict)
+    second_rendered = palifr(cl=cl, result=result, form=form)
+    assert second_rendered == ['cached', 'rendered', 'items']
+    palifr.to_akc.assert_called_once_with(cl=cl, result=result)
+    palifr.akc_mock.has_value.assert_called_once_with()
+    assert not palifr.orig.called
+    assert not palifr.akc_mock.set.called
+    palifr.akc_mock.get.assert_called_once_with()
