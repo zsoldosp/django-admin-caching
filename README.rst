@@ -43,9 +43,16 @@ Configuring the admin
   ``def admin_caching_key(self, obj)``
 * on the admin level, the cache's name can be specified through the
   ``admin_caching_cache_name`` attribute. If omitted, it defaults to ``default``
+* on the admin level, the cache's timeout  can be specified through the
+  ``admin_caching_timeout_seconds`` attribute. If omitted, it defaults to the
+  cache's ``default_tiemout``
 
 Release Notes
 =============
+
+* 0.1.1
+
+  * allow specifying the cache timeout on the admin class
 
 * 0.1.0 - initial release
 

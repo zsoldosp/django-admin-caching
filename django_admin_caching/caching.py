@@ -15,6 +15,12 @@ class CacheConfig(object):
             self.model_admin, 'admin_caching_cache_name', 'default')
 
     @property
+    def cache_timeout(self):
+        return getattr(
+            self.model_admin, 'admin_caching_timeout_seconds',
+            self.cache.default_timeout)
+
+    @property
     def cache(self):
         return cache.caches[self.cache_to_use_name()]
 
@@ -55,7 +61,9 @@ class AutoKeyedCache(object):
 
     def set(self, value):
         if self.cfg.is_enabled:
-            self.cfg.cache.set(key=self.ck.key, value=value)
+            self.cfg.cache.set(
+                key=self.ck.key, value=value,
+                timeout=self.cfg.cache_timeout)
 
     def get(self):
         return self.cfg.cache.get(key=self.ck.key)

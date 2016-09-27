@@ -3,11 +3,8 @@ from django.core.cache.backends.dummy import DummyCache
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.test.utils import override_settings
 from django_admin_caching.caching import CacheConfig
-try:
-    from mock import patch
-except ImportError:
-    from unittest.mock import patch
 import pytest
+from testapp.sixmock import patch
 
 
 class TestAdminClassCanSpecifyWhichCacheToUse(object):
