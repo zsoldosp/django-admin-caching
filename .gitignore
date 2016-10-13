@@ -38,8 +38,9 @@ nosetests.xml
 output/*.html
 output/*/index.html
 
-# Sphinx
+# docs
 docs/_build
+readme-errors
 
 # debug logs
 log
