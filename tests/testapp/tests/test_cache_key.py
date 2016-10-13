@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.sessions.models import Session
 from django_admin_caching.caching import CacheKey
 import pytest
+from testapp.test_helpers import translation_being
 
 
 @pytest.mark.parametrize(
@@ -48,3 +49,26 @@ def test_when_model_admin_is_not_provided_it_is_derived_from_admin_registry():
         assert ck_derived_admin.model_admin == site._registry[Group]
     finally:
         site._registry[Group] = orig_admin
+
+
+@pytest.mark.parametrize(
+    'language,i18n,l10n,expected_key_prefix', [
+        ('en', True, True, 'en.en'),
+        ('de-ch', True, True, 'de-ch.de_CH'),
+        ('en-us', True, True, 'en-us.en_US'),
+        ('en-us', True, False, 'en-us'),
+        # L10N doesn't work w/out I18N
+        # ('en-us', False, False, 'en_US'),
+        ('en-us', False, False, ''),
+    ]
+)
+def test_key_is_i18n_l10n_aware_if_settings_enabled(settings, language, i18n,
+                                                    l10n, expected_key_prefix):
+    settings.USE_I18N = i18n
+    settings.USE_L10N = l10n
+    with translation_being(language):
+        ck = CacheKey(result=Group(pk=1))
+        assert ck.i18n_l10n_prefix == expected_key_prefix
+        assert ck.key.startswith(expected_key_prefix)
+        if expected_key_prefix:
+            assert ck.key.startswith('{}.'.format(expected_key_prefix))
