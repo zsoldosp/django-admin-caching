@@ -56,3 +56,5 @@ CACHES = {
         'LOCATION': 'default',
     }
 }
+
+USE_I18N = USE_L10N = False
