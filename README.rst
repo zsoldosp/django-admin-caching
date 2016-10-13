@@ -41,6 +41,11 @@ Configuring the admin
   be customized by adding a custom key method to the admin class that returns
   the string key for the model object part of the key -
   ``def admin_caching_key(self, obj)``
+
+  * if ``settings.USE_I18N`` (and ``settings.USE_L10N``) are enabled, for each
+    enabled setting, a prefix will be added to the above, e.g.:
+    ``<language name>.<locale name>.<the key from above>``
+
 * on the admin level, the cache's name can be specified through the
   ``admin_caching_cache_name`` attribute. If omitted, it defaults to ``default``
 * on the admin level, the cache's timeout  can be specified through the
@@ -49,6 +54,10 @@ Configuring the admin
 
 Release Notes
 =============
+
+* 0.1.2
+
+  * if i18n/l10n is enabled, account for it in the cache prefix
 
 * 0.1.1
 
