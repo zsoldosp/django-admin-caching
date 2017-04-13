@@ -55,6 +55,10 @@ Configuring the admin
 Release Notes
 =============
 
+* 0.1.3
+
+  * add support for Django 1.11 (and thus for Python 3.6 too)
+
 * 0.1.2
 
   * if i18n/l10n is enabled, account for it in the cache prefix
@@ -109,7 +113,7 @@ Setting up all Python versions
     sudo apt-get -y install software-properties-common
     sudo add-apt-repository ppa:fkrull/deadsnakes
     sudo apt-get update
-    for version in 3.3 3.5; do
+    for version in 3.3 3.5 3.6; do
       py=python$version
       sudo apt-get -y install ${py} ${py}-dev
     done
