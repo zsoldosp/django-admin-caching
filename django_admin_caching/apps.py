@@ -14,7 +14,8 @@ class DjangoAdminCachingAppConfig(AppConfig):
     def ready(self):
         if django.VERSION[:2] == (1, 9):
             import warnings
-            msg = "You are using an unsupported Django version. DJPT support" \
+            msg = "You are using an unsupported Django version. " \
+                  "django-admin-caching support" \
                   " might be dropped in any following release. See " \
                   "https://www.djangoproject.com/download/#supported-versions"
             warnings.warn(msg)
