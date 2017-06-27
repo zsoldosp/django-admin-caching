@@ -63,6 +63,12 @@ else
 	git tag -a ${TAG} -m"${TAG}"; git push --tags ${REMOTE_NAME}
 endif
 
+verify-is-on-latest-django:
+	pip freeze | grep "^Django=" > $@.before
+	pip install -U Django
+	pip freeze | grep "^Django=" > $@.after
+	diff $@.before $@.after
+
 package: clean
 	python setup.py sdist
 	python setup.py bdist_wheel
