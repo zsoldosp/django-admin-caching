@@ -34,7 +34,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'Django>=1.8,<=1.11',
+        'Django>=1.8,<1.12',
     ],
     license="BSD",
     zip_safe=False,

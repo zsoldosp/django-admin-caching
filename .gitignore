@@ -41,6 +41,7 @@ output/*/index.html
 # docs
 docs/_build
 readme-errors
+verify-is-on-latest-django.*
 
 # debug logs
 log
