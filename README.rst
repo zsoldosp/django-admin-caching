@@ -55,6 +55,11 @@ Configuring the admin
 Release Notes
 =============
 
+* 0.1.4
+
+  * bugfix: ``setup.py`` should not roll back latest Django version
+    - `issue #6 <https://github.com/PaesslerAG/django-admin-caching/issues/6>`_
+
 * 0.1.3
 
   * add support for Django 1.11 (and thus for Python 3.6 too)
