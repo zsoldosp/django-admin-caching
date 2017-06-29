@@ -34,7 +34,7 @@ Configuring the admin
 
 * to enable cahcing, the ``admin_caching_enabled`` attribute of the model's
   admin class must be set to  ``True``. Note this means you might need to
-  ``unregister`` the default admin and register your custom one for third 
+  ``unregister`` the default admin and register your custom one for third
   party models (e.g.: ``django.contrib.auth.models.Group``)
 * the cache key by default is ``<admin class module name>.<admin class name>-
   <model class app label>.<model class name>-<model object pk>``. This could
@@ -50,7 +50,7 @@ Configuring the admin
   ``admin_caching_cache_name`` attribute. If omitted, it defaults to ``default``
 * on the admin level, the cache's timeout  can be specified through the
   ``admin_caching_timeout_seconds`` attribute. If omitted, it defaults to the
-  cache's ``default_tiemout``
+  cache's ``default_timeout``
 
 Release Notes
 =============
