@@ -81,4 +81,5 @@ def test_when_all_language_is_deactivated(settings):
     with translation_being('en'):
         translation.deactivate_all()
         ck = CacheKey(result=Group(pk=1))
-        _ = ck.i18n_l10n_prefix
+        prefix = ck.i18n_l10n_prefix
+        assert prefix == '.'
