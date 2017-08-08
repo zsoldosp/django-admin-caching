@@ -53,9 +53,13 @@ class CacheKey(object):
 
     @property
     def i18n_l10n_prefix(self):
-        lang = translation.get_language()
-        locale = translation.to_locale(lang)
         parts = []
+        lang = translation.get_language()
+        if lang is None:
+            lang = ''
+            locale = ''
+        else:
+            locale = translation.to_locale(lang)
         if settings.USE_I18N:
             parts += [lang]
         if settings.USE_L10N:
