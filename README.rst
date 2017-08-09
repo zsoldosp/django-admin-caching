@@ -55,6 +55,11 @@ Configuring the admin
 Release Notes
 =============
 
+* 0.1.5
+
+  * bugfix: AttributeError if all transaction has been deactivated
+    - `issue #10 <https://github.com/PaesslerAG/django-admin-caching/issues/10>`_
+
 * 0.1.4
 
   * bugfix: ``setup.py`` should not roll back latest Django version
