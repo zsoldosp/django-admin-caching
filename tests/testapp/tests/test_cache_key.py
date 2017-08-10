@@ -1,6 +1,7 @@
 from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group
 from django.contrib.sessions.models import Session
+from django.utils import translation
 from django_admin_caching.caching import CacheKey
 import pytest
 from testapp.test_helpers import translation_being
@@ -72,3 +73,13 @@ def test_key_is_i18n_l10n_aware_if_settings_enabled(settings, language, i18n,
         assert ck.key.startswith(expected_key_prefix)
         if expected_key_prefix:
             assert ck.key.startswith('{}.'.format(expected_key_prefix))
+
+
+def test_when_all_language_is_deactivated(settings):
+    settings.USE_I18N = True
+    settings.USE_L10N = True
+    with translation_being('en'):
+        translation.deactivate_all()
+        ck = CacheKey(result=Group(pk=1))
+        prefix = ck.i18n_l10n_prefix
+        assert prefix == '.'
