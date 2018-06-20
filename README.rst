@@ -123,7 +123,7 @@ Setting up all Python versions
     sudo apt-get -y install software-properties-common
     sudo add-apt-repository ppa:fkrull/deadsnakes
     sudo apt-get update
-    for version in 3.3 3.5 3.6; do
+    for version in 3.5 3.6; do
       py=python$version
       sudo apt-get -y install ${py} ${py}-dev
     done
