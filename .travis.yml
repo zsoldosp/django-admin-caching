@@ -14,6 +14,6 @@ matrix:
       env: TOX_ENVS=py36-django111,py36-django20
     - python: "3.5"
       env: TOX_ENVS=py35-django18,py35-django19,py35-django110,py35-django20
-
+      
 script:
   - tox -e $TOX_ENVS
