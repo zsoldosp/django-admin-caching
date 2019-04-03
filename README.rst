@@ -55,6 +55,11 @@ Configuring the admin
 Release Notes
 =============
 
+* 0.1.5 Update to supported versions.
+  * Drop support for Django 1.8, 1.9 and 1.10
+  * Drop support for Python 3.2 and 3.4
+  * Remove compatibility code
+
 * 0.1.5
 
   * bugfix: AttributeError if all translation has been deactivated
