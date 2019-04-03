@@ -1,8 +1,4 @@
-try:
-    from django.core.urlresolvers import resolve
-except ImportError:
-    # resolve was moved in django2.0
-    from django.urls import resolve
+from django.urls import resolve
 from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group
 import pytest
